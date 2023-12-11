@@ -1,4 +1,4 @@
-from ariadne.asgi.handlers import GraphQLTransportWSHandler
+# from ariadne.asgi.handlers import GraphQLTransportWSHandler
 from ariadne.asgi import GraphQL
 from ariadne import (
     format_error,
@@ -42,7 +42,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# add cors middleware
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://studio.apollographql.com"],
@@ -75,26 +75,23 @@ query.set_field("get_users", resolver_get_users)
 query.set_field("search_user", resolver_search_user)
 query.set_field("logout_user", resolver_logout_user)
 
-
 # Loading GraphQL type definitions from .graphql file
 type_defs = load_schema_from_path(SCHEMA_PATH)
 resolvers = [
-    # Resolvers with unions
+    # Resolvers with unions and other resolvers
     get_users_result_union,
     token_response_union,
     create_user_result_union,
     update_user_result_union,
     delete_user_result_union,
     search_user_result_union,
-    # Query and mutations
     query,
     mutation
 ]
 
 # Creating an executable schema with fallback
 schema = make_executable_schema(
-    type_defs, resolvers,
-    snake_case_fallback_resolvers,
+    type_defs, resolvers, snake_case_fallback_resolvers
 )
 
 
@@ -118,30 +115,19 @@ async def shutdown_event():
         await prisma_instance_or_error.disconnect()
         print("DB closed, Prisma Client closed")
 
-
 app.add_event_handler("startup", startup_event)
 app.add_event_handler("shutdown", shutdown_event)
-
 
 # Create GraphQL App instance
 graphql_app = GraphQL(
     schema,
     error_formatter=my_format_error,
     context_value=get_context_value,
-    websocket_handler=GraphQLTransportWSHandler(),
     debug=True
 )
 
-# accept get requests
 
-
-@app.get("/apiBornDay")
-async def handle_graphql_explorer(req: Request):
-    return await graphql_app.handle_request(req)
-
-# handle post requests
-
-
+# Handle POST requests
 @app.post("/apiBornDay")
 async def handle_graphql_query(req: Request):
     return await graphql_app.handle_request(req)

@@ -1,5 +1,8 @@
 from pydantic import BaseModel
 
+# TODO: MAYBE LATER ADD VALIDATIONS 
+
+
 # user type
 class IUser(BaseModel):
     firstname: str
@@ -10,13 +13,7 @@ class IUser(BaseModel):
     birthdate: str
 
 
-# login input 
+# login input
 class ILoginInput(BaseModel):
     username: str
     password: str
-
-
-
-
-
-    

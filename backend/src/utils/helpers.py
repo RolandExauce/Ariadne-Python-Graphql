@@ -8,32 +8,31 @@ from src.utils.errors_and_success_msgs import (
 import bcrypt
 import datetime
 
-
 # Initialize a global Prisma instance
 prisma = Prisma()
 connected = False
 
 
-# get prisma instance
+# Get Prisma instance
 async def get_prisma_instance():
+    global connected
     try:
-        global connected
         if not connected:
             await prisma.connect()
-            connected = True  # Update the connection status
+            connected = True
         return prisma
     except PrismaError as e:
-        # Handle connection errors gracefully
         return {"errorMsg": e.error_message}
 
 
-# get the correct birthdate
+# Validate birthdate format
 def validate_birthdate_format(birthdate):
     try:
         year, month, day = map(int, birthdate.split("-"))
+        current_year = datetime.datetime.now().year
 
         # Check if year is 4 characters long and not less than 1950
-        if not (1950 <= year <= datetime.datetime.now().year and len(str(year)) == 4):
+        if not (1950 <= year <= current_year and len(str(year)) == 4):
             return False
 
         # Check if month is in the valid range (1 to 12)
@@ -63,8 +62,8 @@ def validate_birthdate_format(birthdate):
         return False
 
 
-# create user
-async def create_user_logic(user_data):
+# Create user
+async def create_user_logic(user_data: dict):
     try:
         prisma_instance = await get_prisma_instance()
 
@@ -79,7 +78,7 @@ async def create_user_logic(user_data):
             return {"custom_error": INVALID_DATE}
 
         hashed_password = bcrypt.hashpw(
-            user_data["password"].encode(), bcrypt.gensalt()).decode()
+            str(user_data["password"]).encode(), bcrypt.gensalt()).decode()
 
         user_data["password"] = hashed_password
 

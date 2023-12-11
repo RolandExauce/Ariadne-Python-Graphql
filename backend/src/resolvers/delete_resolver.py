@@ -1,22 +1,29 @@
 from src.graphql.__resolve_types import mutation
-from src.utils.errors_and_success_msgs import NOT_AUTHORIZED
+from src.utils.errors_and_success_msgs import NOT_AUTHORIZED, user_op_msgs
+from src.utils.helpers import get_prisma_instance
 
-# delte user resolver
+
+# delete user resolver
 @mutation.field("delete_user")
-def resolver_delete_user(_root, info, id):
+async def resolver_delete_user(_root, info, id):
 
-    # Retrieve the context and then get the Response object
+    # get context
     request_context = info.context
-    user = request_context.user
-    user_role = user.get("role")
+    auth_rules = request_context.auth_rules
+    is_admin = bool(auth_rules.get("is_admin", False))
 
-    # Check if the user is an admin; if not, return an error
-    if user is not None and user_role != "ADMIN":
+    if not is_admin:
         return {"custom_error": NOT_AUTHORIZED}
 
+    # prisma instance
+    prisma_instance_or_error = await get_prisma_instance()
+    if isinstance(prisma_instance_or_error, dict) and "custom_error" in prisma_instance_or_error:
+        return {"custom_error": prisma_instance_or_error["custom_error"]}
+    prisma = prisma_instance_or_error
 
-    # Your logic to delete a user
-    # Return either a User or a GraphqlError
-    # Example: return deleted_user or error
-
-    return "user was deleted"
+    try:
+        # similar to js, returning by checking similar to a ternary operator
+        deleted_user = await prisma.user.delete(where={"id": id})
+        return {"message": user_op_msgs(op="DELETE")} if deleted_user else {"custom_error": user_op_msgs(op="DELETE", caseErr="FAILED")}
+    except Exception as e:
+        return {"custom_error": str(e)}

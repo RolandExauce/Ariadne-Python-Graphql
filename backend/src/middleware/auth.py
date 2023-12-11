@@ -5,15 +5,15 @@ from src.utils.jwt import verify_jwt
 from fastapi import Request
 import datetime
 
-
 # authenticate user in request
 async def get_authenticated_user(req: Request):
+    # Get Prisma instance
     prisma_instance_or_error = await get_prisma_instance()
     if isinstance(prisma_instance_or_error, dict) and "custom_error" in prisma_instance_or_error:
         return {"custom_error": prisma_instance_or_error.get("custom_error")}
     prisma = prisma_instance_or_error
 
-    # Check headers (if applicable)
+    # Check headers for token
     token = req.headers.get("authorization")
     if token and token.startswith("Bearer"):
         access_token = token.split(" ")[1]
@@ -21,14 +21,13 @@ async def get_authenticated_user(req: Request):
 
         if decoded_user:
             try:
+                # Check token expiration
                 token_expires_in = decoded_user.get("exp")
-                expiration_time = datetime.datetime.utcfromtimestamp(
-                    token_expires_in)
+                expiration_time = datetime.datetime.utcfromtimestamp(token_expires_in)
                 current_time = datetime.datetime.utcnow()
 
-                # Check if the token is expired
                 if expiration_time > current_time:
-                    # Token is not expired, retrieve user from the database
+                    # Token is valid, retrieve user from the database
                     found_user = await prisma.user.find_first(
                         where={"id": str(decoded_user.get("user_id"))}
                     )

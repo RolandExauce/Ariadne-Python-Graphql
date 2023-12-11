@@ -1,3 +1,4 @@
+from fastapi.responses import Response
 from src.utils.load_envs import jwt_access_token_expires_in_hours
 from datetime import datetime, timedelta, timezone
 from src.graphql.__resolve_types import mutation
@@ -8,44 +9,31 @@ from src.utils.types import ILoginInput
 # login resolver
 @mutation.field("login_user")
 async def resolver_login_user(_root, info, login_input: ILoginInput):
-
-    # Retrieve the context and then get the Response object
     request_context = info.context
-    res = request_context.response
+    res: Response = request_context.response
 
-    # pass login input to login helper middleware
+    #  login user middleware to retrieve the user
     user_response = await try_login(login_input)
-    if "user" in user_response and "access_token" in user_response:
-        user_data = user_response.get("user")
-        access_token = user_response.get("access_token")
+    if all(key in user_response for key in ("user", "access_token")):
+        user_data = user_response["user"]
+        access_token = user_response["access_token"]
 
-        # Construct response content
-        user_response = {
-            'user': user_data,
-            'access_token': access_token,
-        }
-
-        # expiration time for cookies
+        user_response = {'user': user_data, 'access_token': access_token}
         expires = datetime.utcnow().replace(tzinfo=timezone.utc) + \
             timedelta(hours=jwt_access_token_expires_in_hours)
 
-        # Set the cookies in the response headers
-        res.set_cookie(
-            key='access_token',
-            value=f'Bearer {access_token}',
-            expires=expires,
-            secure=True,
-            httponly=True,
-            samesite="none"
-        )
-        res.set_cookie(
-            key="logged_In",
-            value="True",
-            expires=expires,
-            secure=True,
-            httponly=True,
-            samesite="none"
-        )
+        # create some cookie options in a dict
+        cookie_opts = {
+            "expires": expires,
+            "secure": True,
+            "httponly": True,
+            "samesite": "none"
+        }
+
+        # use ** to unpack dict and pass it as key value to set_cookie function
+        res.set_cookie(key='access_token',
+                       value=f'Bearer {access_token}', **cookie_opts)
+        res.set_cookie(key="logged_In", value="True", **cookie_opts)
 
         return user_response
     else:
