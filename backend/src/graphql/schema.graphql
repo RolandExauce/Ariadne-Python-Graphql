@@ -1,0 +1,86 @@
+# roles
+enum Role {
+  ADMIN
+  USER
+}
+
+# Error
+type GraphqlError {
+  custom_error: String!
+}
+
+# success message
+type Success {
+  message: String!
+}
+
+# user data
+type User {
+  id: ID!
+  firstname: String!
+  lastname: String!
+  username: String!
+  role: Role!
+  password: String!
+  birthdate: String!
+}
+
+# get all users
+type UsersSuccess {
+  users: [User]! # list cannot be null
+}
+
+# login input
+input login_input {
+  username: String!
+  password: String!
+}
+
+# on login
+type UserResponse {
+  user: User!
+  access_token: String!
+}
+
+# create a new user
+input create_user_input {
+  firstname: String!
+  lastname: String!
+  username: String!
+  password: String!
+  role: Role!
+  birthdate: String!
+}
+
+# update a user
+input update_user_input {
+  firstname: String!
+  lastname: String!
+  username: String!
+  password: String!
+  birthdate: String!
+}
+
+# unions
+union TokenResponse = UserResponse | GraphqlError # login
+union CreateUserResult = Success | GraphqlError # create
+union UpdateUserResult = Success | GraphqlError # update
+union DeleteUserResult = Success | GraphqlError # delete
+union SearchUserResult = User | GraphqlError # search
+union GetUsersResult = UsersSuccess | GraphqlError
+
+
+# Mutations
+type Mutation {
+  login_user(login_input: login_input!): TokenResponse!
+  create_user(create_user_input: create_user_input!): CreateUserResult! 
+  update_user(id: ID!, user: update_user_input!): UpdateUserResult! 
+  delete_user(id: ID!): DeleteUserResult!
+}
+
+# Queries
+type Query {
+  get_users: GetUsersResult! 
+  search_user(username: String!): SearchUserResult! 
+  logout_user: Boolean!
+}

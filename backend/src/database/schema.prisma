@@ -1,0 +1,30 @@
+// prisma client generator
+generator client {
+    provider             = "prisma-client-py"
+    recursive_type_depth = 5
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = "file:./bornDaysDB.db"
+}
+
+// define user schema 
+model User {
+    id        String @id @unique @default(cuid()) //unique string id 
+    firstname String @unique
+    lastname  String @unique
+    username  String @unique
+    role      String // store as string cuz enum not supported 
+    password  String
+    birthdate String
+
+    //table name
+    @@map("Users")
+}
+
+
+// CMDS:
+
+// Gen client: prisma generate 
+ // Create schema: prisma db push
