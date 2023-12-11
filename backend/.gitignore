@@ -1,5 +1,8 @@
+# Ignore the .env file inside the src folder
+src/.env
+
+# Ignore the todo.md file in the backend folder
 todo.md
 
-/cert/
-
-/src/.env
+# Ignore the cert folder
+cert/
