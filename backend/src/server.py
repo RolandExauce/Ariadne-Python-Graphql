@@ -6,10 +6,19 @@ from ariadne import (
     make_executable_schema,
     snake_case_fallback_resolvers,
 )
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from graphql.error.graphql_error import GraphQLError
+from src.utils.load_envs import (
+    FRONT_END_APP_URL,
+    APP_STATE,
+    SERVER_CERT,
+    SERVER_KEY,
+    GRAPHQL_SCHEMA_PATH,
+    DATABASE_PATH
+)
 
 
 # Importing resolver functions
@@ -30,10 +39,12 @@ from pathlib import Path
 import sqlite3
 
 
+is_prod = APP_STATE == "production"  # if is prod mode then use ssl certificates
+
 # Defining paths
 base_path = Path(__file__).parent
-SCHEMA_PATH = base_path / "./graphql/schema.graphql"
-DB_PATH = base_path / "./database/bornDaysDB.db"
+SCHEMA_PATH = base_path / GRAPHQL_SCHEMA_PATH
+DB_PATH = base_path / DATABASE_PATH
 
 # Creating FastAPI instance
 app = FastAPI(
@@ -45,7 +56,7 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://studio.apollographql.com"],
+    allow_origins=[FRONT_END_APP_URL],
     allow_credentials=True,
     allow_methods=["POST", "GET"],
     allow_headers=["*"],
@@ -135,7 +146,21 @@ async def handle_graphql_query(req: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="localhost", port=5000)
+    uvicorn_options = {
+        "host": "localhost",
+        "port": 5000
+    }
+
+    if is_prod:
+        uvicorn_options.update({
+            "ssl_keyfile": SERVER_KEY,
+            "ssl_certfile": SERVER_CERT,
+            "host": "dev.server"
+        })
+
+    uvicorn.run(app, **uvicorn_options)
 
 
-# RUN CMD: uvicorn src.server:app --reload --host localhost --port 5000
+# RUN CMD in dev mode: uvicorn src.server:app --reload --host localhost --port 5000
+
+# RUN CMD in prod mode: uvicorn src.server:app --host dev.server --port 5000 --ssl-keyfile path_to_your_server_key/server.key --ssl-certfile path_to_your_server_certificate/server.crt

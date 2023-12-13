@@ -14,3 +14,12 @@ JWT_PUBLIC_KEY_ACCESS = str(os.getenv("JWT_PUBLIC_KEY_ACCESS"))
 ALGORITHM = str(os.getenv("ALGORITHM"))
 jwtAccessTokenExpiresIn = str(os.getenv("jwtAccessTokenExpiresIn"))
 jwt_access_token_expires_in_hours = float(jwtAccessTokenExpiresIn)
+
+
+FRONT_END_APP_URL = str(os.getenv("FRONT_END_APP_URL"))
+GRAPHQL_SCHEMA_PATH = str(os.getenv("GRAPHQL_SCHEMA_PATH"))
+DATABASE_PATH = str(os.getenv("DATABASE_PATH"))
+
+SERVER_CERT = str(os.getenv("SERVER_CERT"))
+SERVER_KEY = str(os.getenv("SERVER_KEY"))
+APP_STATE = str(os.getenv("APP_STATE"))
