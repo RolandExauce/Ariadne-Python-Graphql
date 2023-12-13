@@ -1,14 +1,8 @@
-# user birthday app
-
-functionalities: 
-
-* create user and birthday at the same time, types: User 
+# backend: graphql and ariadne + fastapi
 
 * create, search, update, delete user birthday
 
 
 # frontend app: 
 
-users board in cards, where you can edit their birthday, 
-
-left users, right a calender 
+not sure yet, choices: django/flutter/pyqt5
