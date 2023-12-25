@@ -5,4 +5,4 @@
 
 # frontend app: 
 
-not sure yet, choices: django/flutter/pyqt5
+not sure yet, choices: django/flutter/pyqt5 or some js frameworks: vue, react ?
