@@ -1,1 +1,1 @@
-# a little birthday app reminder build with python using graphql
+a little birthday app reminder build with python using graphql
